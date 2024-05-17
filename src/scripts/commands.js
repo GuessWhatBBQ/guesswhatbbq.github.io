@@ -32,7 +32,7 @@ export function createLsCommand(
   rootDirectory,
   globalDirectoryState,
 ) {
-  const { currentDirectory } = globalDirectoryState;
+  const { cwd } = globalDirectoryState;
   function ls(dir) {
     if (dir) {
       if (dir.startsWith("~/")) {
@@ -41,7 +41,7 @@ export function createLsCommand(
         if (dirs.length > 1) {
           terminal.error("Invalid directory");
         }
-      } else if (currentDirectory === rootDirectory) {
+      } else if (cwd === rootDirectory) {
         if (dir in directories) {
           terminal.echo(directories[dir].join("\n"));
         } else {
@@ -52,7 +52,7 @@ export function createLsCommand(
       } else {
         terminal.error("Invalid directory");
       }
-    } else if (currentDirectory === rootDirectory) {
+    } else if (cwd === rootDirectory) {
       printDirs(terminal, directories);
     }
   }
@@ -81,4 +81,28 @@ export function createCdCommand(
     }
   }
   return cd;
+}
+
+export function createCatCommand(
+  terminal,
+  directories,
+  rootDirectory,
+  globalDirectoryState,
+) {
+  function cat() {
+    const { cwd } = globalDirectoryState;
+    if (cwd !== rootDirectory) {
+      const dir = cwd.substring(2);
+      async function animation() {
+        const prompt = terminal.get_prompt();
+        terminal.set_prompt("");
+        for (const string of directories[dir]) {
+          await terminal.echo(string, { delay: 2, typing: true });
+        }
+        terminal.set_prompt(prompt);
+      }
+      animation();
+    }
+  }
+  return cat;
 }

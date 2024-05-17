@@ -8,7 +8,11 @@ import xml_formatting from "jquery.terminal/js/xml_formatting";
 xml_formatting($);
 
 import { directories } from "./directories.js";
-import { createLsCommand, createCdCommand } from "./commands.js";
+import {
+  createLsCommand,
+  createCdCommand,
+  createCatCommand,
+} from "./commands.js";
 
 const font = "Standard";
 figlet.parseFont(font, standard); // name should be the same one used in figlet.text
@@ -31,25 +35,10 @@ const commands = {
     createCdCommand(term, directories, root, cwd)(dir);
   },
   ls(dir = null) {
-    createLsCommand(term, directories, root, { currentDirectory: cwd.cwd })(
-      dir,
-    );
+    createLsCommand(term, directories, root, cwd)(dir);
   },
   cat() {
-    if (cwd.cwd !== root) {
-      const dir = cwd.cwd.substring(2);
-      let term = this;
-      async function animation() {
-        const prompt = term.get_prompt();
-        term.set_prompt("");
-        for (const string of directories[dir]) {
-          console.log(string);
-          await term.echo(string, { delay: 2, typing: true });
-        }
-        term.set_prompt(prompt);
-      }
-      animation();
-    }
+    createCatCommand(term, directories, root, cwd)();
   },
 };
 
