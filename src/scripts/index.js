@@ -7,58 +7,18 @@ import standard from "figlet/importable-fonts/Standard";
 import xml_formatting from "jquery.terminal/js/xml_formatting";
 xml_formatting($);
 
+import { directories } from "./directories.js";
+import { createLsCommand, createCdCommand } from "./commands.js";
+
 const font = "Standard";
 figlet.parseFont(font, standard); // name should be the same one used in figlet.text
 
-function print_dirs() {
-  term.echo(
-    dirs
-      .map((dir) => {
-        return `<blue class="directory">${dir}</blue>`;
-      })
-      .join("\n"),
-  );
-}
-
 const root = "~";
-let cwd = root;
-const directories = {
-  education: [
-    "<white>education</white>",
-
-    '* <a href="https://www.iutoic-dhaka.edu">Islamic University of Technology</a> <yellow>"Bsc in Software Engineering"</yellow> 2020-2024',
-    '* <a href="https://scholasticabd.com/">Scholastica</a> 2003-2019',
-  ],
-  projects: [
-    "<white>Open Source projects</white>",
-    [
-      [
-        "FantechX9ThorDriver",
-        "https://github.com/GuessWhatBBQ/FantechX9ThorDriver",
-        "open-source driver for the Fantech X9 Thor RGB gaming mouse targeted for linux systems",
-      ],
-      ["N/A", "web.site", "N/A"],
-    ].map(([name, url, description = ""]) => {
-      return `* <a href="${url}">${name}</a> &mdash; <white>${description}</white>`;
-    }),
-  ].flat(),
-  skills: [
-    "<white>languages</white>",
-
-    ["JavaScript", "Python", "SQL", "C#", "Bash"].map(
-      (lang) => `* <yellow>${lang}</yellow>`,
-    ),
-    "<white>libraries</white>",
-    ["React.js", "Redux", "Jest"].map((lib) => `* <green>${lib}</green>`),
-    "<white>tools</white>",
-    ["Docker", "git", "GNU/Linux"].map((lib) => `* <blue>${lib}</blue>`),
-  ].flat(),
-};
-const dirs = Object.keys(directories);
+var cwd = { cwd: root };
 const commands = {
   help() {
     term.echo(`List of available commands: ${help}`, {
-      delay: 10,
+      delay: 2,
       typing: true,
     });
   },
@@ -68,61 +28,27 @@ const commands = {
     }
   },
   cd(dir = null) {
-    if (dir === null || (dir === ".." && cwd !== root)) {
-      cwd = root;
-    } else if (dir.startsWith("~/") && dirs.includes(dir.substring(2))) {
-      cwd = dir;
-    } else if (dirs.includes(dir)) {
-      cwd = root + "/" + dir;
-    } else {
-      this.error("Wrong directory");
-    }
+    createCdCommand(term, directories, root, cwd)(dir);
   },
   ls(dir = null) {
-    if (dir) {
-      if (dir.startsWith("~/")) {
-        const path = dir.substring(2);
-        const dirs = path.split("/");
-        if (dirs.length > 1) {
-          this.error("Invalid directory");
-        } else {
-          const dir = dirs[0];
-          this.echo(directories[dir].join("\n"));
-        }
-      } else if (cwd === root) {
-        if (dir in directories) {
-          this.echo(directories[dir].join("\n"));
-        } else {
-          this.error("Invalid directory");
-        }
-      } else if (dir === "..") {
-        print_dirs();
-      } else {
-        this.error("Invalid directory");
-      }
-    } else if (cwd === root) {
-      print_dirs();
-    } else {
-      const dir = cwd.substring(2);
-      this.echo(directories[dir].join("\n"));
-    }
+    createLsCommand(term, directories, root, { currentDirectory: cwd.cwd })(
+      dir,
+    );
   },
   cat() {
-    if (cwd !== root) {
-      const dir = cwd.substring(2);
+    if (cwd.cwd !== root) {
+      const dir = cwd.cwd.substring(2);
       let term = this;
       async function animation() {
         const prompt = term.get_prompt();
         term.set_prompt("");
         for (const string of directories[dir]) {
           console.log(string);
-          await term.echo(string, { delay: 10, typing: true });
+          await term.echo(string, { delay: 2, typing: true });
         }
         term.set_prompt(prompt);
       }
       animation();
-      console.log("Done");
-      // this.echo(directories[dir].join("."), { delay: 10, typing: true });
     }
   },
 };
@@ -142,7 +68,7 @@ const user = "guest";
 const server = "portfolio";
 
 function prompt() {
-  return `<green>${user}@${server}</green>:<blue>${cwd}</blue>$ `;
+  return `<green>${user}@${server}</green>:<blue>${cwd.cwd}</blue>$ `;
 }
 
 const term = $("body").terminal(commands, {
