@@ -2,29 +2,29 @@ import "jquery.terminal/css/jquery.terminal.min.css";
 import "../styles/index.css";
 import terminal from "jquery.terminal";
 terminal($);
-import figlet from "figlet";
-import standard from "figlet/importable-fonts/Standard";
 import xml_formatting from "jquery.terminal/js/xml_formatting";
 xml_formatting($);
+
+// const lolcat = await import("isomorphic-lolcat");
+// import "../../node_modules/isomorphic-lolcat/index.js";
+// import "../index.js";
+// import "https:cdn.jsdelivr.net/npm/isomorphic-lolcat";
+// console.log(lolcat);
 
 import { directories } from "./directories.js";
 import {
   createLsCommand,
   createCdCommand,
   createCatCommand,
+  createHelpCommand,
 } from "./commands.js";
-
-const font = "Standard";
-figlet.parseFont(font, standard); // name should be the same one used in figlet.text
+import { render } from "./figlet.js";
 
 const root = "~";
 var cwd = { cwd: root };
 const commands = {
   help() {
-    term.echo(`List of available commands: ${help}`, {
-      delay: 2,
-      typing: true,
-    });
+    createHelpCommand(term, commands)();
   },
   echo(...args) {
     if (args.length > 0) {
@@ -41,17 +41,6 @@ const commands = {
     createCatCommand(term, directories, root, cwd)();
   },
 };
-
-const formatter = new Intl.ListFormat("en", {
-  style: "long",
-  type: "conjunction",
-});
-
-const command_list = Object.keys(commands);
-const formatted_list = command_list.map((cmd) => {
-  return `<white class="command">${cmd}</white>`;
-});
-const help = formatter.format(formatted_list);
 
 const user = "guest";
 const server = "portfolio";
@@ -95,7 +84,7 @@ function hex(color) {
   );
 }
 
-const re = new RegExp(`^\s*(${command_list.join("|")}) (.*)`);
+const re = new RegExp(`^\s*(${Object.keys(commands).join("|")}) (.*)`);
 
 $.terminal.new_formatter(function (string) {
   return string.replace(re, function (_, command, args) {
@@ -110,25 +99,15 @@ $.terminal.xml_formatter.tags.blue = (attrs) => {
   return `[[;#55F;;${attrs.class}]`;
 };
 
-figlet.parseFont("Standard", standard);
-
-function render(text, cb) {
-  const cols = term.cols();
-  return figlet.text(
-    text,
-    {
-      font: font,
-      width: cols,
-      whitespaceBreak: true,
-    },
-    cb,
-  );
-}
-
-render("Md Samin Yasar Islam", (err, data) => {
-  term
-    .echo(() => rainbow(data))
-    .echo(
-      '<white>Type <orange class="command">help</orange> to find all the supported commands</white>',
-    );
-});
+render(
+  "Md Samin Yasar Islam",
+  (err, data) => {
+    term
+      .echo(() => rainbow(data))
+      .echo(
+        '<white>Type <orange class="command">help</orange> to find all the supported commands</white>',
+      );
+  },
+  "Standard",
+  term.cols(),
+);

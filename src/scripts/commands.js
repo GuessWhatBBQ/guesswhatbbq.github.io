@@ -106,3 +106,22 @@ export function createCatCommand(
   }
   return cat;
 }
+
+export function createHelpCommand(terminal, commands) {
+  function help() {
+    const formatter = new Intl.ListFormat("en", {
+      style: "long",
+      type: "conjunction",
+    });
+
+    const formatted_list = Object.keys(commands).map((cmd) => {
+      return `<white class="command">${cmd}</white>`;
+    });
+    const help = formatter.format(formatted_list);
+    terminal.echo(`List of available commands: ${help}`, {
+      delay: 2,
+      typing: true,
+    });
+  }
+  return help;
+}
