@@ -1,19 +1,4 @@
-export function createCommands(terminal) {
-  const commands = {
-    help() {
-      terminal.echo(`List of available commands: ${help}`, {
-        delay: 10,
-        typing: true,
-      });
-    },
-    echo(...args) {
-      if (args.length > 0) {
-        terminal.echo(args.join(" "));
-      }
-    },
-  };
-  return commands;
-}
+import { render } from "./figlet.js";
 
 function printDirs(terminal, directories) {
   const dirs = Object.keys(directories);
@@ -23,16 +8,12 @@ function printDirs(terminal, directories) {
         return `<blue class="directory">${dir}</blue>`;
       })
       .join("\n"),
+    { delay: 10, typing: true },
   );
 }
 
-export function createLsCommand(
-  terminal,
-  directories,
-  rootDirectory,
-  globalDirectoryState,
-) {
-  const { cwd } = globalDirectoryState;
+export function createLsCommand(terminal, directories, directoryInfo) {
+  const { cwd, root } = directoryInfo;
   function ls(dir) {
     if (dir) {
       if (dir.startsWith("~/")) {
@@ -41,7 +22,7 @@ export function createLsCommand(
         if (dirs.length > 1) {
           terminal.error("Invalid directory");
         }
-      } else if (cwd === rootDirectory) {
+      } else if (cwd === root) {
         if (dir in directories) {
           terminal.echo(directories[dir].join("\n"));
         } else {
@@ -52,30 +33,26 @@ export function createLsCommand(
       } else {
         terminal.error("Invalid directory");
       }
-    } else if (cwd === rootDirectory) {
+    } else if (cwd === root) {
       printDirs(terminal, directories);
     }
   }
   return ls;
 }
 
-export function createCdCommand(
-  terminal,
-  directories,
-  rootDirectory,
-  globalDirectoryState,
-) {
+export function createCdCommand(terminal, directories, directoryInfo) {
   function cd(dir) {
-    const currentDirectory = globalDirectoryState.cwd;
-    if (dir === null || (dir === ".." && currentDirectory !== rootDirectory)) {
-      globalDirectoryState.cwd = rootDirectory;
+    const currentDirectory = directoryInfo.cwd;
+    const { root } = directoryInfo;
+    if (dir === null || (dir === ".." && currentDirectory !== root)) {
+      directoryInfo.cwd = root;
     } else if (
       dir.startsWith("~/") &&
       directories.hasOwnProperty(dir.substring(2))
     ) {
-      globalDirectoryState.cwd = dir;
+      directoryInfo.cwd = dir;
     } else if (directories.hasOwnProperty(dir)) {
-      globalDirectoryState.cwd = rootDirectory + "/" + dir;
+      directoryInfo.cwd = root + "/" + dir;
     } else {
       terminal.error("Wrong directory");
     }
@@ -83,15 +60,10 @@ export function createCdCommand(
   return cd;
 }
 
-export function createCatCommand(
-  terminal,
-  directories,
-  rootDirectory,
-  globalDirectoryState,
-) {
+export function createCatCommand(terminal, directories, directoryInfo) {
   function cat() {
-    const { cwd } = globalDirectoryState;
-    if (cwd !== rootDirectory) {
+    const { cwd, root } = directoryInfo;
+    if (cwd !== root) {
       const dir = cwd.substring(2);
       async function animation() {
         const prompt = terminal.get_prompt();
@@ -124,4 +96,43 @@ export function createHelpCommand(terminal, commands) {
     });
   }
   return help;
+}
+
+function rainbow(string) {
+  return lolcat
+    .rainbow(function (char, color) {
+      char = $.terminal.escape_brackets(char);
+      return `[[;${hex(color)};]${char}]`;
+    }, string)
+    .join("\n");
+}
+
+function hex(color) {
+  return (
+    "#" +
+    [color.red, color.green, color.blue]
+      .map((n) => {
+        return n.toString(16).padStart(2, "0");
+      })
+      .join("")
+  );
+}
+
+export function createBannerCommand(terminal) {
+  function banner() {
+    render(
+      "Md Samin Yasar Islam",
+      (err, data) => {
+        terminal
+          .echo(() => rainbow(data))
+          .echo(
+            '<white> Type <orange class="command">help</orange> to find all the supported commands, or simply click around since all commands \n and directory listings are clickable</white>',
+            { delay: 2, typing: true },
+          );
+      },
+      "Standard",
+      terminal.cols(),
+    );
+  }
+  return banner;
 }
