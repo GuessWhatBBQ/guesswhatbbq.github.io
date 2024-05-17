@@ -13,7 +13,11 @@ export const directories = {
         "https://github.com/GuessWhatBBQ/FantechX9ThorDriver",
         "open-source driver for the Fantech X9 Thor RGB gaming mouse targeted for linux systems",
       ],
-      ["N/A", "web.site", "N/A"],
+      [
+        "SwipeFlix",
+        "https://github.com/GuessWhatBBQ/SwipeFlix",
+        "application that uses computer vision to allow UI interactions using hand gestures",
+      ],
     ].map(([name, url, description = ""]) => {
       return `* <a href="${url}">${name}</a> &mdash; <white>${description}</white>`;
     }),
