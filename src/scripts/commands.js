@@ -126,7 +126,7 @@ export function createBannerCommand(terminal) {
         terminal
           .echo(() => rainbow(data))
           .echo(
-            '<white> Type <orange class="command">help</orange> to find all the supported commands, or simply click around since all commands \n and directory listings are clickable</white>',
+            ' Type <orange class="command">help</orange> to find all the supported commands, or simply click around since all commands \n and directory listings are clickable',
             { delay: 2, typing: true },
           );
       },

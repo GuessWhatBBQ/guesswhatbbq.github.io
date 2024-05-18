@@ -5,18 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --emptyOutDir",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@rollup/plugin-inject": "^5.0.5",
-    "vite": "^5.2.0",
-    "vite-plugin-commonjs": "^0.10.1"
+    "vite": "^5.2.0"
   },
   "dependencies": {
     "figlet": "^1.7.0",
     "isomorphic-lolcat": "^0.3.0",
     "jquery": "^3.7.1",
-    "jquery.terminal": "^2.41.1"
+    "jquery.terminal": "^2.41.2"
   }
 }
